@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>天祥國際車業 — 精選中古車</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;700;900&family=Barlow+Condensed:wght@300;400;600;700;900&family=Noto+Sans+TC:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --black: #0a0a0b;
+    --dark: #111114;
+    --card: #18181c;
+    --border: #2a2a30;
+    --gold: #c9a84c;
+    --gold-light: #e8c97a;
+    --silver: #9aa0ab;
+    --white: #f0eff0;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html { scroll-behavior: smooth; }
+  body { background:var(--black); color:var(--white); font-family:'Noto Sans TC',sans-serif; overflow-x:hidden; }
+
+  /* NAV */
+  nav {
+    position:fixed; top:0; left:0; right:0; z-index:100;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:0 5vw; height:64px;
+    background:rgba(10,10,11,0.92); backdrop-filter:blur(12px);
+    border-bottom:1px solid var(--border);
+  }
+  .logo { font-family:'Barlow Condensed',sans-serif; font-size:1.5rem; font-weight:900; letter-spacing:0.12em; color:var(--gold); text-decoration:none; }
+  .logo span { color:var(--white); }
+  .nav-links { display:flex; gap:2rem; list-style:none; }
+  .nav-links a { font-size:0.8rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--silver); text-decoration:none; transition:color .2s; font-family:'Barlow Condensed',sans-serif; font-weight:600; }
+  .nav-links a:hover { color:var(--gold); }
+  .nav-cta { background:var(--gold); color:var(--black); border:none; padding:8px 20px; font-size:0.78rem; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; cursor:pointer; font-family:'Barlow Condensed',sans-serif; transition:background .2s; }
+  .nav-cta:hover { background:var(--gold-light); }
+
+  /* HERO */
+  #hero { height:100vh; min-height:600px; display:flex; flex-direction:column; justify-content:flex-end; padding:0 5vw 8vh; position:relative; overflow:hidden; }
+  .hero-bg { position:absolute; inset:0; background: linear-gradient(to bottom, rgba(10,10,11,0.3) 0%, rgba(10,10,11,0.85) 80%), url('https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=1600&q=80') center/cover no-repeat; }
+  .hero-badge { display:inline-block; font-family:'Barlow Condensed',sans-serif; font-size:0.75rem; letter-spacing:0.25em; text-transform:uppercase; color:var(--gold); border:1px solid var(--gold); padding:5px 14px; margin-bottom:1.5rem; position:relative; z-index:1; animation:fadeUp .6s ease both; }
+  .hero-title { font-family:'Noto Serif TC',serif; font-size:clamp(2.8rem,7vw,5.5rem); font-weight:900; line-height:1.1; position:relative; z-index:1; animation:fadeUp .6s .15s ease both; }
+  .hero-title em { color:var(--gold); font-style:normal; }
+  .hero-sub { margin-top:1.2rem; max-width:500px; font-size:0.9rem; line-height:1.8; color:var(--silver); position:relative; z-index:1; animation:fadeUp .6s .3s ease both; }
+  .hero-actions { display:flex; gap:1rem; margin-top:2.5rem; position:relative; z-index:1; animation:fadeUp .6s .45s ease both; }
+  .btn-gold { background:var(--gold); color:var(--black); border:none; padding:14px 32px; font-family:'Barlow Condensed',sans-serif; font-size:0.9rem; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; cursor:pointer; transition:all .2s; text-decoration:none; display:inline-block; }
+  .btn-gold:hover { background:var(--gold-light); transform:translateY(-2px); }
+  .btn-outline { background:transparent; color:var(--white); border:1px solid rgba(255,255,255,0.3); padding:14px 32px; font-family:'Barlow Condensed',sans-serif; font-size:0.9rem; font-weight:600; letter-spacing:0.12em; text-transform:uppercase; cursor:pointer; transition:all .2s; text-decoration:none; display:inline-block; }
+  .btn-outline:hover { border-color:var(--gold); color:var(--gold); transform:translateY(-2px); }
+  .hero-stats { position:absolute; right:5vw; bottom:8vh; display:flex; gap:3rem; z-index:1; animation:fadeUp .6s .6s ease both; }
+  .stat { text-align:center; }
+  .stat-num { font-family:'Barlow Condensed',sans-serif; font-size:2.5rem; font-weight:900; color:var(--gold); line-height:1; }
+  .stat-label { font-size:0.72rem; color:var(--silver); letter-spacing:0.1em; margin-top:4px; }
+  @keyframes fadeUp { from { opacity:0; transform:translateY(24px); } to { opacity:1; transform:translateY(0); } }
+
+  /* SEARCH */
+  #search-section { background:var(--dark); padding:2.5rem 5vw; border-bottom:1px solid var(--border); }
+  .search-bar { display:flex; gap:1rem; flex-wrap:wrap; align-items:flex-end; }
+  .search-field { display:flex; flex-direction:column; gap:6px; flex:1; min-width:140px; }
+  .search-field label { font-size:0.7rem; letter-spacing:0.15em; text-transform:uppercase; color:var(--silver); }
+  .search-field select { background:var(--card); border:1px solid var(--border); color:var(--white); padding:10px 14px; font-size:0.85rem; font-family:'Noto Sans TC',sans-serif; outline:none; appearance:none; transition:border-color .2s; }
+  .search-field select:focus { border-color:var(--gold); }
+  .search-btn { background:var(--gold); color:var(--black); border:none; padding:10px 28px; font-family:'Barlow Condensed',sans-serif; font-size:0.9rem; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; cursor:pointer; transition:background .2s; white-space:nowrap; align-self:flex-end; height:42px; }
+  .search-btn:hover { background:var(--gold-light); }
+
+  /* SECTIONS */
+  section { padding:5rem 5vw; }
+  .section-label { font-family:'Barlow Condensed',sans-serif; font-size:0.72rem; letter-spacing:0.3em; text-transform:uppercase; color:var(--gold); margin-bottom:0.8rem; }
+  .section-title { font-family:'Noto Serif TC',serif; font-size:clamp(1.8rem,4vw,2.8rem); font-weight:900; line-height:1.2; }
+  .section-head { margin-bottom:3rem; }
+
+  /* LOADING */
+  .loading-state { grid-column:1/-1; text-align:center; padding:4rem; color:var(--silver); }
+  .spinner { width:40px; height:40px; border:3px solid var(--border); border-top-color:var(--gold); border-radius:50%; animation:spin 0.8s linear infinite; margin:0 auto 1rem; }
+  @keyframes spin { to { transform:rotate(360deg); } }
+
+  /* CAR GRID */
+  .car-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:1.5rem; }
+  .car-card { background:var(--card); border:1px solid var(--border); cursor:pointer; transition:all .25s; position:relative; overflow:hidden; }
+  .car-card:hover { border-color:var(--gold); transform:translateY(-4px); box-shadow:0 12px 40px rgba(0,0,0,0.5); }
+  .car-card-img { width:100%; height:200px; object-fit:cover; display:block; transition:transform .4s; background:#222; }
+  .car-card:hover .car-card-img { transform:scale(1.04); }
+  .car-tag { position:absolute; top:12px; left:12px; background:var(--gold); color:var(--black); font-family:'Barlow Condensed',sans-serif; font-size:0.7rem; font-weight:700; letter-spacing:0.1em; padding:3px 10px; }
+  .car-info { padding:1.2rem 1.4rem 1.4rem; }
+  .car-brand { font-size:0.7rem; letter-spacing:0.15em; text-transform:uppercase; color:var(--silver); }
+  .car-name { font-family:'Noto Serif TC',serif; font-size:1.05rem; font-weight:700; margin:4px 0 10px; }
+  .car-specs { display:flex; gap:1rem; flex-wrap:wrap; font-size:0.75rem; color:var(--silver); margin-bottom:1rem; }
+  .car-footer { display:flex; justify-content:space-between; align-items:center; }
+  .car-price { font-family:'Barlow Condensed',sans-serif; font-size:1.5rem; font-weight:700; color:var(--gold); }
+  .car-price small { font-size:0.75rem; color:var(--silver); font-weight:400; }
+  .car-cta { background:transparent; border:1px solid var(--border); color:var(--silver); padding:6px 14px; font-size:0.75rem; font-family:'Barlow Condensed',sans-serif; letter-spacing:0.08em; cursor:pointer; transition:all .2s; }
+  .car-cta:hover { border-color:var(--gold); color:var(--gold); }
+
+  /* FILTER TAGS */
+  .filter-tags { display:flex; gap:0.6rem; flex-wrap:wrap; margin-bottom:2rem; }
+  .filter-tag { background:transparent; border:1px solid var(--border); color:var(--silver); padding:5px 16px; font-size:0.75rem; font-family:'Barlow Condensed',sans-serif; letter-spacing:0.08em; cursor:pointer; transition:all .2s; }
+  .filter-tag.active, .filter-tag:hover { background:var(--gold); color:var(--black); border-color:var(--gold); }
+
+  /* MODAL */
+  .modal-overlay { display:none; position:fixed; inset:0; z-index:200; background:rgba(0,0,0,0.85); backdrop-filter:blur(4px); overflow-y:auto; padding:2rem 1rem; }
+  .modal-overlay.active { display:flex; align-items:flex-start; justify-content:center; }
+  .modal { background:var(--dark); border:1px solid var(--border); max-width:900px; width:100%; margin:auto; position:relative; animation:modalIn .3s ease; }
+  @keyframes modalIn { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+  .modal-close { position:absolute; top:1rem; right:1rem; z-index:10; background:rgba(0,0,0,0.5); border:1px solid var(--border); color:var(--white); width:36px; height:36px; cursor:pointer; font-size:1.2rem; display:flex; align-items:center; justify-content:center; }
+  .modal-gallery { position:relative; height:360px; background:#111; overflow:hidden; }
+  .modal-gallery img { width:100%; height:100%; object-fit:cover; }
+  .gallery-thumbs { display:flex; gap:8px; padding:12px; background:var(--card); overflow-x:auto; }
+  .gallery-thumbs img { width:80px; height:55px; object-fit:cover; cursor:pointer; opacity:0.5; transition:opacity .2s; flex-shrink:0; border:2px solid transparent; }
+  .gallery-thumbs img.active { opacity:1; border-color:var(--gold); }
+  .modal-body { display:grid; grid-template-columns:1fr 300px; gap:2rem; padding:2rem; }
+  .modal-title { font-family:'Noto Serif TC',serif; font-size:1.6rem; font-weight:900; margin-bottom:4px; }
+  .modal-sub { color:var(--silver); font-size:0.82rem; margin-bottom:1.5rem; }
+  .specs-grid { display:grid; grid-template-columns:1fr 1fr; gap:1px; background:var(--border); border:1px solid var(--border); }
+  .spec-item { background:var(--card); padding:12px 14px; }
+  .spec-key { font-size:0.68rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--silver); margin-bottom:4px; }
+  .spec-val { font-size:0.92rem; font-weight:500; }
+  .modal-price-box { background:var(--card); border:1px solid var(--border); padding:1.5rem; margin-bottom:1rem; }
+  .modal-price { font-family:'Barlow Condensed',sans-serif; font-size:2.4rem; font-weight:900; color:var(--gold); }
+  .modal-price-note { font-size:0.75rem; color:var(--silver); margin-top:4px; }
+  .contact-btns { display:flex; flex-direction:column; gap:10px; }
+  .btn-line { display:flex; align-items:center; justify-content:center; gap:10px; background:#06C755; color:#fff; border:none; padding:14px; font-family:'Barlow Condensed',sans-serif; font-size:0.95rem; font-weight:700; letter-spacing:0.1em; cursor:pointer; text-decoration:none; transition:opacity .2s; }
+  .btn-line:hover { opacity:0.88; }
+  .btn-tel { display:flex; align-items:center; justify-content:center; gap:10px; background:var(--card); color:var(--white); border:1px solid var(--border); padding:14px; font-family:'Barlow Condensed',sans-serif; font-size:0.95rem; font-weight:600; letter-spacing:0.1em; cursor:pointer; text-decoration:none; transition:border-color .2s; }
+  .btn-tel:hover { border-color:var(--gold); color:var(--gold); }
+
+  /* LOAN */
+  #loan { background:var(--dark); border-top:1px solid var(--border); border-bottom:1px solid var(--border); }
+  .loan-grid { display:grid; grid-template-columns:1fr 1fr; gap:4rem; }
+  .loan-form { display:flex; flex-direction:column; gap:1.5rem; }
+  .loan-field { display:flex; flex-direction:column; gap:8px; }
+  .loan-field label { font-size:0.72rem; letter-spacing:0.15em; text-transform:uppercase; color:var(--silver); }
+  .loan-field input[type=range] { accent-color:var(--gold); width:100%; }
+  .range-display { font-family:'Barlow Condensed',sans-serif; font-size:1.3rem; font-weight:700; color:var(--gold); }
+  .loan-result { background:var(--card); border:1px solid var(--border); padding:2.5rem; display:flex; flex-direction:column; justify-content:center; }
+  .result-row { display:flex; justify-content:space-between; padding:1rem 0; border-bottom:1px solid var(--border); }
+  .result-row:last-child { border-bottom:none; }
+  .result-key { color:var(--silver); font-size:0.85rem; }
+  .result-val { font-family:'Barlow Condensed',sans-serif; font-size:1.1rem; font-weight:700; }
+  .result-val.highlight { color:var(--gold); font-size:1.5rem; }
+
+  /* WHY */
+  .why-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:1.5rem; margin-top:3rem; }
+  .why-card { border:1px solid var(--border); padding:2rem; }
+  .why-icon { font-size:2rem; margin-bottom:1rem; }
+  .why-title { font-family:'Noto Serif TC',serif; font-size:1.05rem; font-weight:700; margin-bottom:0.6rem; }
+  .why-desc { font-size:0.82rem; color:var(--silver); line-height:1.8; }
+
+  /* CONTACT */
+  #contact { background:linear-gradient(135deg,#15130a 0%,#0a0a0b 100%); border-top:1px solid var(--border); padding:5rem 5vw; text-align:center; }
+  #contact p { color:var(--silver); font-size:0.9rem; margin-bottom:3rem; margin-top:1rem; }
+  .contact-strip { display:flex; gap:1.5rem; justify-content:center; flex-wrap:wrap; }
+  .contact-card { background:var(--card); border:1px solid var(--border); padding:2rem 2.5rem; display:flex; flex-direction:column; align-items:center; gap:0.8rem; min-width:220px; transition:border-color .2s; text-decoration:none; }
+  .contact-card:hover { border-color:var(--gold); }
+  .contact-card-icon { font-size:2rem; }
+  .contact-card-label { font-size:0.7rem; letter-spacing:0.15em; text-transform:uppercase; color:var(--silver); }
+  .contact-card-value { font-family:'Barlow Condensed',sans-serif; font-size:1.2rem; font-weight:700; color:var(--white); }
+
+  /* FOOTER */
+  footer { background:var(--black); border-top:1px solid var(--border); padding:2rem 5vw; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; font-size:0.75rem; color:var(--silver); }
+
+  /* ERROR BANNER */
+  .error-banner { background:#2a1010; border:1px solid #5a2020; padding:1rem 1.5rem; color:#ff8080; font-size:0.85rem; border-radius:2px; grid-column:1/-1; text-align:center; }
+
+  @media(max-width:700px) {
+    .hero-stats { display:none; }
+    .nav-links { display:none; }
+    .modal-body { grid-template-columns:1fr; }
+    .loan-grid { grid-template-columns:1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════════
+     ★  設定區（只需改這裡）
+     ════════════════════════════════ -->
+<script>
+const CONFIG = {
+  // ① 把你的 Google Sheets 公開網址貼在這裡（CSV 格式，見教學）
+  SHEETS_CSV_URL: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQgGPrenoaHIKl-p8aYlFx5AzQ5eB72VYjX1_lEP41KuEmiwa6EOflNptJyorlh5PfPT5QJF-I6jtlf/pub?gid=0&single=true&output=csv',
+
+  // ② 聯絡資訊
+  LINE_ID:    '0920036450',        // 你的 LINE ID
+  LINE_URL:   'https://line.me/ti/p/TY9KWkSFOi', // LINE 加好友連結
+  PHONE:      '0920-036-450',           // 電話
+  PHONE_URL:  'tel:03-988-8888',
+  ADDRESS:    '宜蘭縣五結鄉中正路二段196號',       // 地址
+  MAP_URL:    'https://maps.app.goo.gl/eC4mHsggnYjZgCLXA?g_st=il',
+
+  // ③ 首頁數字
+  STAT_CARS:  '200+',
+  STAT_YEARS: '10年',
+  STAT_RATE:  '98%',
+};
+</script>
+<!-- ════════════════════════════════ -->
+
+<nav>
+  <a class="logo" href="#hero">天祥<span>國際車業</span></a>
+  <ul class="nav-links">
+    <li><a href="#cars">車輛總覽</a></li>
+    <li><a href="#loan">貸款試算</a></li>
+    <li><a href="#contact">聯絡我們</a></li>
+  </ul>
+  <button class="nav-cta" onclick="document.getElementById('contact').scrollIntoView({behavior:'smooth'})">立即詢價</button>
+</nav>
+
+<section id="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-badge">天祥國際車業 · 宜蘭</div>
+  <h1 class="hero-title">嚴選好車<br><em>值得信賴</em></h1>
+  <p class="hero-sub">每一輛車都經過專業鑑定，實車實價，透明公開。<br>讓您安心找到最適合的愛車。</p>
+  <div class="hero-actions">
+    <a href="#cars" class="btn-gold">立即看車</a>
+    <a id="hero-line-btn" href="#" class="btn-outline">加 LINE 詢問</a>
+  </div>
+  <div class="hero-stats">
+    <div class="stat"><div class="stat-num" id="s-cars"></div><div class="stat-label">在庫車輛</div></div>
+    <div class="stat"><div class="stat-num" id="s-years"></div><div class="stat-label">車業經驗</div></div>
+    <div class="stat"><div class="stat-num" id="s-rate"></div><div class="stat-label">客戶滿意度</div></div>
+  </div>
+</section>
+
+<div id="search-section">
+  <div class="search-bar">
+    <div class="search-field">
+      <label>品牌</label>
+      <select id="f-brand"><option value="">全部品牌</option></select>
+    </div>
+    <div class="search-field">
+      <label>車型</label>
+      <select id="f-type">
+        <option value="">全部車型</option>
+        <option>Sedan 轎車</option>
+        <option>SUV</option>
+        <option>Hatchback</option>
+        <option>Coupe</option>
+        <option>MPV</option>
+        <option>Pickup</option>
+      </select>
+    </div>
+    <div class="search-field">
+      <label>價格區間</label>
+      <select id="f-price">
+        <option value="">不限</option>
+        <option value="0-500000">50萬以下</option>
+        <option value="500000-1000000">50萬 ~ 100萬</option>
+        <option value="1000000-2000000">100萬 ~ 200萬</option>
+        <option value="2000000-9999999">200萬以上</option>
+      </select>
+    </div>
+    <div class="search-field">
+      <label>燃料</label>
+      <select id="f-fuel">
+        <option value="">全部</option>
+        <option>汽油</option>
+        <option>柴油</option>
+        <option>油電</option>
+        <option>電動</option>
+      </select>
+    </div>
+    <button class="search-btn" onclick="filterCars()">🔍 搜尋</button>
+  </div>
+</div>
+
+<section id="cars">
+  <div class="section-head">
+    <div class="section-label">嚴選車款</div>
+    <h2 class="section-title">精選中古車輛</h2>
+  </div>
+  <div class="filter-tags" id="filter-tags">
+    <button class="filter-tag active" onclick="setFilter(this,'')">全部</button>
+  </div>
+  <div class="car-grid" id="car-grid">
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>正在載入車輛資料⋯</p>
+    </div>
+  </div>
+</section>
+
+<section style="background:var(--dark); border-top:1px solid var(--border);">
+  <div class="section-head">
+    <div class="section-label">為何選擇我們</div>
+    <h2 class="section-title">天祥的承諾</h2>
+  </div>
+  <div class="why-grid">
+    <div class="why-card"><div class="why-icon">🔍</div><div class="why-title">專業鑑定</div><div class="why-desc">每輛車均經嚴格車況鑑定，提供完整鑑定報告，水車、泡水車絕不進貨。</div></div>
+    <div class="why-card"><div class="why-icon">💰</div><div class="why-title">實車實價</div><div class="why-desc">標示價格即成交價，無任何隱藏費用，讓您安心購車不踩雷。</div></div>
+    <div class="why-card"><div class="why-icon">📋</div><div class="why-title">完整過戶</div><div class="why-desc">協助辦理過戶、保險、驗車等一站式服務，省時省力。</div></div>
+    <div class="why-card"><div class="why-icon">🏦</div><div class="why-title">彈性貸款</div><div class="why-desc">配合多家銀行，利率優惠，依您的需求量身規劃最佳還款方案。</div></div>
+  </div>
+</section>
+
+<section id="loan">
+  <div class="section-head">
+    <div class="section-label">購車試算</div>
+    <h2 class="section-title">貸款試算器</h2>
+  </div>
+  <div class="loan-grid">
+    <div class="loan-form">
+      <div class="loan-field">
+        <label>車價（萬元）</label>
+        <input type="range" id="l-price" min="20" max="300" value="80" step="5" oninput="calcLoan()">
+        <div class="range-display"><span id="l-price-v">80</span> 萬元</div>
+      </div>
+      <div class="loan-field">
+        <label>頭期款（萬元）</label>
+        <input type="range" id="l-down" min="0" max="100" value="20" step="5" oninput="calcLoan()">
+        <div class="range-display"><span id="l-down-v">20</span> 萬元</div>
+      </div>
+      <div class="loan-field">
+        <label>貸款年限</label>
+        <input type="range" id="l-years" min="1" max="7" value="5" step="1" oninput="calcLoan()">
+        <div class="range-display"><span id="l-years-v">5</span> 年</div>
+      </div>
+      <div class="loan-field">
+        <label>年利率（%）</label>
+        <input type="range" id="l-rate" min="1" max="8" value="2.5" step="0.1" oninput="calcLoan()">
+        <div class="range-display"><span id="l-rate-v">2.5</span> %</div>
+      </div>
+    </div>
+    <div class="loan-result">
+      <div class="result-row"><span class="result-key">車價</span><span class="result-val" id="r-price">800,000 元</span></div>
+      <div class="result-row"><span class="result-key">頭期款</span><span class="result-val" id="r-down">200,000 元</span></div>
+      <div class="result-row"><span class="result-key">貸款總額</span><span class="result-val" id="r-loan">600,000 元</span></div>
+      <div class="result-row"><span class="result-key">貸款年限</span><span class="result-val" id="r-years">5 年（60期）</span></div>
+      <div class="result-row"><span class="result-key">每月還款</span><span class="result-val highlight" id="r-monthly">10,512 元</span></div>
+      <div class="result-row"><span class="result-key">利息總額</span><span class="result-val" id="r-interest">30,720 元</span></div>
+    </div>
+  </div>
+  <p style="margin-top:1.5rem; font-size:0.75rem; color:var(--silver);">＊以上試算僅供參考，實際貸款利率及方案請洽業務人員確認。</p>
+</section>
+
+<section id="contact">
+  <div class="section-label">立即聯繫</div>
+  <h2 class="section-title">有任何問題，歡迎隨時找我們</h2>
+  <p>不論是詢價、看車、貸款諮詢，我們都竭誠為您服務</p>
+  <div class="contact-strip">
+    <a class="contact-card" id="contact-line" href="#" target="_blank">
+      <div class="contact-card-icon">💬</div>
+      <div class="contact-card-label">LINE 加好友</div>
+      <div class="contact-card-value" id="contact-line-id"></div>
+    </a>
+    <a class="contact-card" id="contact-tel" href="#">
+      <div class="contact-card-icon">📞</div>
+      <div class="contact-card-label">電話洽詢</div>
+      <div class="contact-card-value" id="contact-phone"></div>
+    </a>
+    <a class="contact-card" id="contact-map" href="#" target="_blank">
+      <div class="contact-card-icon">📍</div>
+      <div class="contact-card-label">門市地址</div>
+      <div class="contact-card-value" id="contact-address"></div>
+    </a>
+  </div>
+</section>
+
+<footer>
+  <a class="logo" href="#hero">天祥<span>國際車業</span></a>
+  <span>© 2025 天祥國際車業 · 版權所有</span>
+  <span>宜蘭縣 · 值得信賴的中古車夥伴</span>
+</footer>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal" onclick="closeModal(event)">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModalBtn()">✕</button>
+    <div class="modal-gallery"><img id="modal-main-img" src="" alt=""></div>
+    <div class="gallery-thumbs" id="modal-thumbs"></div>
+    <div class="modal-body">
+      <div class="modal-left">
+        <div class="modal-title" id="modal-title"></div>
+        <div class="modal-sub" id="modal-sub"></div>
+        <div class="specs-grid" id="modal-specs"></div>
+        <p id="modal-desc" style="margin-top:1.5rem; font-size:0.85rem; color:var(--silver); line-height:1.9;"></p>
+      </div>
+      <div class="modal-side">
+        <div class="modal-price-box">
+          <div style="font-size:0.7rem; letter-spacing:0.1em; color:var(--silver); margin-bottom:6px;">售價</div>
+          <div class="modal-price" id="modal-price"></div>
+          <div class="modal-price-note">實車實價 · 歡迎議價</div>
+        </div>
+        <div class="contact-btns">
+          <a id="modal-line-btn" href="#" class="btn-line" target="_blank">💬 LINE 詢問這輛車</a>
+          <a id="modal-tel-btn" href="#" class="btn-tel">📞 電話洽詢</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ══════════════════════════════════════
+   工具函式：把 Google Drive 分享連結轉成直接顯示的網址
+   使用者只要貼「共用連結」，程式自動轉換
+   ══════════════════════════════════════ */
+function driveToDirectUrl(url) {
+  if (!url) return '';
+  url = url.trim();
+  // 已是直接連結
+  if (url.startsWith('https://lh') || url.includes('uc?')) return url;
+  // 格式: https://drive.google.com/file/d/FILE_ID/view
+  const m1 = url.match(/\/file\/d\/([^/]+)/);
+  if (m1) return `https://drive.google.com/uc?export=view&id=${m1[1]}`;
+  // 格式: https://drive.google.com/open?id=FILE_ID
+  const m2 = url.match(/[?&]id=([^&]+)/);
+  if (m2) return `https://drive.google.com/uc?export=view&id=${m2[1]}`;
+  return url;
+}
+
+/* ══════════════════════════════════════
+   解析 CSV（支援欄位內含逗號、換行）
+   ══════════════════════════════════════ */
+function parseCSV(text) {
+  const rows = [];
+  let row = [], cur = '', inQ = false;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (ch === '"') { inQ = !inQ; continue; }
+    if (ch === ',' && !inQ) { row.push(cur.trim()); cur = ''; continue; }
+    if ((ch === '\n' || ch === '\r') && !inQ) {
+      if (ch === '\r' && text[i+1] === '\n') i++;
+      row.push(cur.trim()); rows.push(row); row = []; cur = '';
+      continue;
+    }
+    cur += ch;
+  }
+  if (cur || row.length) { row.push(cur.trim()); rows.push(row); }
+  return rows;
+}
+
+/* ══════════════════════════════════════
+   把 CSV 資料對應到車輛物件
+   欄位順序（第一列為標題，不讀取）：
+   A:品牌 B:車名 C:年份 D:車型 E:售價 F:里程
+   G:燃料 H:顏色 I:排氣量 J:變速箱 K:標籤
+   L:描述 M:照片1 N:照片2 O:照片3 P:照片4
+   ══════════════════════════════════════ */
+function rowToCar(row, idx) {
+  const imgs = [row[12], row[13], row[14], row[15]]
+    .filter(Boolean)
+    .map(driveToDirectUrl);
+  return {
+    id: idx,
+    brand:        row[0]  || '',
+    name:         row[1]  || '',
+    year:         row[2]  || '',
+    type:         row[3]  || '',
+    price:        parseInt((row[4] || '0').replace(/[^0-9]/g, '')) || 0,
+    km:           row[5]  || '',
+    fuel:         row[6]  || '',
+    color:        row[7]  || '',
+    displacement: row[8]  || '',
+    transmission: row[9]  || '',
+    tag:          row[10] || '',
+    desc:         row[11] || '',
+    img:          imgs[0] || '',
+    imgs:         imgs.length ? imgs : [''],
+  };
+}
+
+/* ══════════════════════════════════════
+   主程式
+   ══════════════════════════════════════ */
+let ALL_CARS = [];
+let currentFilter = '';
+
+function applyConfig() {
+  // 聯絡資訊填入
+  document.getElementById('hero-line-btn').href   = CONFIG.LINE_URL;
+  document.getElementById('contact-line').href    = CONFIG.LINE_URL;
+  document.getElementById('contact-line-id').textContent = CONFIG.LINE_ID;
+  document.getElementById('contact-tel').href     = CONFIG.PHONE_URL;
+  document.getElementById('contact-phone').textContent   = CONFIG.PHONE;
+  document.getElementById('contact-map').href     = CONFIG.MAP_URL;
+  document.getElementById('contact-address').textContent = CONFIG.ADDRESS;
+  document.getElementById('modal-line-btn').href  = CONFIG.LINE_URL;
+  document.getElementById('modal-tel-btn').href   = CONFIG.PHONE_URL;
+  // 統計數字
+  document.getElementById('s-cars').textContent  = CONFIG.STAT_CARS;
+  document.getElementById('s-years').textContent = CONFIG.STAT_YEARS;
+  document.getElementById('s-rate').textContent  = CONFIG.STAT_RATE;
+}
+
+async function loadCars() {
+  try {
+    const url = CONFIG.SHEETS_CSV_URL;
+    if (url.includes('YOUR_SHEET_ID')) {
+      showDemoMode();
+      return;
+    }
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('網路錯誤');
+    const text = await res.text();
+    const rows = parseCSV(text).slice(1).filter(r => r[0]); // 跳過標題列
+    ALL_CARS = rows.map(rowToCar);
+    buildBrandFilter();
+    renderCars(ALL_CARS);
+  } catch(e) {
+    document.getElementById('car-grid').innerHTML = `
+      <div class="error-banner">
+        ⚠️ 無法載入車輛資料，請確認 Google Sheets 設定是否正確。<br>
+        <small>錯誤：${e.message}</small>
+      </div>`;
+  }
+}
+
+function showDemoMode() {
+  // 未設定時顯示示範資料
+  ALL_CARS = [
+    { id:1, brand:'Toyota', name:'Altis GR Sport', year:'2021', type:'Sedan 轎車', price:628000, km:'3.2萬公里', fuel:'汽油', color:'珍珠白', displacement:'1,800cc', transmission:'自排', tag:'熱門', desc:'原廠GR Sport套件，外觀運動化，配備完整，車況優良。', img:'https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=600&q=80', imgs:['https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=800&q=80','https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=800&q=80'] },
+    { id:2, brand:'BMW', name:'320i M-Sport', year:'2021', type:'Sedan 轎車', price:1318000, km:'2.8萬公里', fuel:'汽油', color:'礦物白', displacement:'2,000cc', transmission:'自排', tag:'精選', desc:'M Sport套件，科技配備齊全，原廠保養紀錄完整。', img:'https://images.unsplash.com/photo-1555215695-3004980ad54e?w=600&q=80', imgs:['https://images.unsplash.com/photo-1555215695-3004980ad54e?w=800&q=80'] },
+    { id:3, brand:'M-Benz', name:'C300 AMG', year:'2021', type:'Sedan 轎車', price:1680000, km:'1.9萬公里', fuel:'汽油', color:'曜石黑', displacement:'2,000cc', transmission:'自排', tag:'新到', desc:'AMG Line外觀套件，低里程保值首選。', img:'https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=600&q=80', imgs:['https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=800&q=80'] },
+    { id:4, brand:'Mazda', name:'CX-5 旗艦版', year:'2022', type:'SUV', price:798000, km:'4.1萬公里', fuel:'汽油', color:'魂動紅', displacement:'2,500cc', transmission:'自排', tag:'熱門', desc:'旗艦型全配，BOSE音響，全景天窗，里程低。', img:'https://images.unsplash.com/photo-1609752045580-68f3e41e29d6?w=600&q=80', imgs:['https://images.unsplash.com/photo-1609752045580-68f3e41e29d6?w=800&q=80'] },
+    { id:5, brand:'Toyota', name:'RAV4 油電', year:'2023', type:'SUV', price:1080000, km:'1.2萬公里', fuel:'油電', color:'白色', displacement:'2,500cc', transmission:'自排', tag:'精選', desc:'2023年式油電，省油環保，全配安全系統。', img:'https://images.unsplash.com/photo-1568844293986-8d0400bd4745?w=600&q=80', imgs:['https://images.unsplash.com/photo-1568844293986-8d0400bd4745?w=800&q=80'] },
+    { id:6, brand:'Lexus', name:'IS200t F-Sport', year:'2017', type:'Sedan 轎車', price:868000, km:'6.5萬公里', fuel:'汽油', color:'白色', displacement:'2,000cc', transmission:'自排', tag:'', desc:'高質感豪華轎跑，F-Sport版本。', img:'https://images.unsplash.com/photo-1583267746897-2cf415887172?w=600&q=80', imgs:['https://images.unsplash.com/photo-1583267746897-2cf415887172?w=800&q=80'] },
+  ];
+  buildBrandFilter();
+  renderCars(ALL_CARS);
+  // 顯示提示
+  const note = document.createElement('p');
+  note.style.cssText = 'color:var(--gold);font-size:0.8rem;margin-bottom:1.5rem;';
+  note.textContent = '⚙️ 目前顯示示範資料，請依教學設定 Google Sheets 後即可自動更新。';
+  document.getElementById('cars').querySelector('.section-head').after(note);
+}
+
+function buildBrandFilter() {
+  const brands = [...new Set(ALL_CARS.map(c => c.brand))].filter(Boolean);
+  // 搜尋下拉
+  const sel = document.getElementById('f-brand');
+  brands.forEach(b => { const o = document.createElement('option'); o.value = b; o.textContent = b; sel.appendChild(o); });
+  // 快速篩選標籤
+  const tags = document.getElementById('filter-tags');
+  brands.forEach(b => {
+    const btn = document.createElement('button');
+    btn.className = 'filter-tag';
+    btn.textContent = b;
+    btn.onclick = () => setFilter(btn, b);
+    tags.appendChild(btn);
+  });
+}
+
+function renderCars(cars) {
+  const grid = document.getElementById('car-grid');
+  grid.innerHTML = '';
+  if (!cars.length) {
+    grid.innerHTML = '<p style="color:var(--silver);grid-column:1/-1;padding:3rem 0;text-align:center;">找不到符合條件的車輛，請調整篩選條件。</p>';
+    return;
+  }
+  cars.forEach(c => {
+    const div = document.createElement('div');
+    div.className = 'car-card';
+    div.onclick = () => openModal(c.id);
+    div.innerHTML = `
+      ${c.tag ? `<div class="car-tag">${c.tag}</div>` : ''}
+      <img class="car-card-img" src="${c.img}" alt="${c.name}" loading="lazy" onerror="this.style.background='#2a2a30'">
+      <div class="car-info">
+        <div class="car-brand">${c.brand} · ${c.year}</div>
+        <div class="car-name">${c.name}</div>
+        <div class="car-specs">
+          <span>🛣 ${c.km}</span>
+          <span>⛽ ${c.fuel}</span>
+          <span>⚙️ ${c.transmission}</span>
+        </div>
+        <div class="car-footer">
+          <div class="car-price">$${(c.price/10000).toFixed(0)}萬<small> 元</small></div>
+          <button class="car-cta">查看詳情</button>
+        </div>
+      </div>`;
+    grid.appendChild(div);
+  });
+}
+
+function setFilter(btn, brand) {
+  document.querySelectorAll('.filter-tag').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  currentFilter = brand;
+  renderCars(brand ? ALL_CARS.filter(c => c.brand === brand) : ALL_CARS);
+}
+
+function filterCars() {
+  const brand    = document.getElementById('f-brand').value;
+  const type     = document.getElementById('f-type').value;
+  const priceRng = document.getElementById('f-price').value;
+  const fuel     = document.getElementById('f-fuel').value;
+  let result = ALL_CARS;
+  if (brand) result = result.filter(c => c.brand === brand);
+  if (type)  result = result.filter(c => c.type  === type);
+  if (fuel)  result = result.filter(c => c.fuel  === fuel);
+  if (priceRng) {
+    const [min,max] = priceRng.split('-').map(Number);
+    result = result.filter(c => c.price >= min && c.price <= max);
+  }
+  renderCars(result);
+  document.getElementById('cars').scrollIntoView({behavior:'smooth'});
+}
+
+function openModal(id) {
+  const c = ALL_CARS.find(x => x.id === id);
+  if (!c) return;
+  document.getElementById('modal-title').textContent = `${c.year} ${c.brand} ${c.name}`;
+  document.getElementById('modal-sub').textContent   = `${c.type} · ${c.color} · ${c.displacement}`;
+  document.getElementById('modal-price').textContent = `$ ${c.price.toLocaleString()} 元`;
+  document.getElementById('modal-desc').textContent  = c.desc;
+  const specs = [['年份',c.year],['里程',c.km],['燃料',c.fuel],['顏色',c.color],['排氣量',c.displacement],['變速箱',c.transmission]];
+  document.getElementById('modal-specs').innerHTML = specs.map(([k,v]) =>
+    `<div class="spec-item"><div class="spec-key">${k}</div><div class="spec-val">${v}</div></div>`
+  ).join('');
+  document.getElementById('modal-main-img').src = c.imgs[0];
+  document.getElementById('modal-thumbs').innerHTML = c.imgs.map((img,i) =>
+    `<img src="${img}" class="${i===0?'active':''}" onclick="switchImg(this,'${img}')" onerror="this.style.display='none'">`
+  ).join('');
+  document.getElementById('modal').classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+
+function switchImg(el, src) {
+  document.getElementById('modal-main-img').src = src;
+  document.querySelectorAll('#modal-thumbs img').forEach(i => i.classList.remove('active'));
+  el.classList.add('active');
+}
+function closeModalBtn() { document.getElementById('modal').classList.remove('active'); document.body.style.overflow = ''; }
+function closeModal(e) { if (e.target === document.getElementById('modal')) closeModalBtn(); }
+
+function calcLoan() {
+  const price = +document.getElementById('l-price').value * 10000;
+  const down  = +document.getElementById('l-down').value  * 10000;
+  const years = +document.getElementById('l-years').value;
+  const rate  = +document.getElementById('l-rate').value / 100;
+  document.getElementById('l-price-v').textContent = price/10000;
+  document.getElementById('l-down-v').textContent  = down/10000;
+  document.getElementById('l-years-v').textContent = years;
+  document.getElementById('l-rate-v').textContent  = (+document.getElementById('l-rate').value).toFixed(1);
+  const loan = Math.max(0, price - down);
+  const n = years * 12, r = rate / 12;
+  let monthly = r > 0 ? loan * r * Math.pow(1+r,n) / (Math.pow(1+r,n)-1) : loan/n;
+  const interest = monthly*n - loan;
+  document.getElementById('r-price').textContent    = price.toLocaleString() + ' 元';
+  document.getElementById('r-down').textContent     = down.toLocaleString()  + ' 元';
+  document.getElementById('r-loan').textContent     = loan.toLocaleString()  + ' 元';
+  document.getElementById('r-years').textContent    = `${years} 年（${n}期）`;
+  document.getElementById('r-monthly').textContent  = Math.round(monthly).toLocaleString() + ' 元';
+  document.getElementById('r-interest').textContent = Math.round(interest).toLocaleString() + ' 元';
+}
+
+applyConfig();
+loadCars();
+calcLoan();
+</script>
+</body>
+</html>
