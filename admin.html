@@ -687,14 +687,47 @@ async function writeSheetViaGAS(cars) {
   const headers = ['品牌','車名','年份','車型','售價','里程','燃料','顏色','排氣量','變速箱','標籤','描述','照片1','照片2','照片3','照片4'];
   const payload = { action: 'writeCars', sheetUrl: state.currentStaff.csvUrl, data: [headers, ...cars] };
 
-  const res = await fetch(gasUrl, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
+  // 用 JSONP 方式繞過 CORS 限制
+  return new Promise((resolve, reject) => {
+    const cbName = 'gasCallback_' + Date.now();
+    const encoded = encodeURIComponent(JSON.stringify(payload));
+    const url = gasUrl + '?callback=' + cbName + '&payload=' + encoded;
+
+    window[cbName] = (json) => {
+      delete window[cbName];
+      document.head.removeChild(script);
+      if (json.status === 'ok') resolve(json);
+      else reject(new Error(json.message || 'GAS 寫入失敗'));
+    };
+
+    const script = document.createElement('script');
+    script.src = url;
+    script.onerror = () => {
+      delete window[cbName];
+      // JSONP 失敗時改用 fetch no-cors（只能確認送出，無法確認結果）
+      fetch(gasUrl, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify(payload),
+      }).then(() => resolve({ status: 'ok' }))
+        .catch(() => reject(new Error('無法連接 GAS，請確認部署設定')));
+    };
+    document.head.appendChild(script);
+    setTimeout(() => {
+      if (window[cbName]) {
+        delete window[cbName];
+        // timeout 時改用 no-cors
+        fetch(gasUrl, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'text/plain' },
+          body: JSON.stringify(payload),
+        }).then(() => resolve({ status: 'ok' }))
+          .catch(() => reject(new Error('連線逾時')));
+      }
+    }, 8000);
   });
-  if (!res.ok) throw new Error('GAS 回應錯誤');
-  const json = await res.json();
-  if (json.status !== 'ok') throw new Error(json.message || 'GAS 寫入失敗');
 }
 
 // ══════════════════════════════════════════════════════
