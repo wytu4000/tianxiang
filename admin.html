@@ -233,6 +233,11 @@ html, body { height:100%; background:var(--bg); color:var(--white); font-family:
         <div class="config-label">系統設定（Token、公司資訊）</div>
         <div class="config-arrow">›</div>
       </div>
+      <div class="config-row" onclick="manualSync()">
+        <div class="config-icon">🔄</div>
+        <div class="config-label">從雲端重新同步設定</div>
+        <div class="config-arrow">›</div>
+      </div>
     </div>
   </div>
 </div>
@@ -425,6 +430,13 @@ let state = {
   activePhotoSlot: 0,
 };
 
+// ══════════════════════════════════════════════════════
+//  雲端設定同步
+//  GAS_URL 寫死在程式碼裡（這是唯一不需要每次輸入的東西）
+//  其他設定（Token、員工列表等）都存在 GAS 試算表，自動同步
+// ══════════════════════════════════════════════════════
+const BOOTSTRAP_GAS_URL = ''; // ← 第一次設定完後，把 GAS 網址貼這裡，之後就不用每次輸入了
+
 function cfg() {
   return {
     token: localStorage.getItem('gh_token') || '',
@@ -432,6 +444,85 @@ function cfg() {
     repo:  localStorage.getItem('gh_repo')  || 'tianxiang',
     staff: localStorage.getItem('staff_list') || '',
   };
+}
+
+function gasUrl() {
+  return localStorage.getItem('gas_url') || BOOTSTRAP_GAS_URL;
+}
+
+// 從雲端載入設定（App 啟動時呼叫）
+async function syncSettingsFromCloud() {
+  const url = gasUrl();
+  if (!url) return false;
+  try {
+    const settings = await readSettingsViaGAS(url);
+    if (settings.gh_token) localStorage.setItem('gh_token', settings.gh_token);
+    if (settings.gh_user)  localStorage.setItem('gh_user', settings.gh_user);
+    if (settings.gh_repo)  localStorage.setItem('gh_repo', settings.gh_repo);
+    if (settings.staff_list) localStorage.setItem('staff_list', settings.staff_list);
+    localStorage.setItem('gas_url', url);
+    return true;
+  } catch(e) {
+    console.warn('雲端設定同步失敗', e);
+    return false;
+  }
+}
+
+// 把目前設定上傳到雲端
+async function syncSettingsToCloud() {
+  const url = gasUrl();
+  if (!url) throw new Error('請先填入 GAS Web App 網址');
+  const settings = {
+    gh_token: localStorage.getItem('gh_token') || '',
+    gh_user:  localStorage.getItem('gh_user')  || '',
+    gh_repo:  localStorage.getItem('gh_repo')  || '',
+    staff_list: localStorage.getItem('staff_list') || '',
+  };
+  await writeSettingsViaGAS(url, settings);
+}
+
+function readSettingsViaGAS(url) {
+  return new Promise((resolve, reject) => {
+    const cbName = 'gasReadSettings_' + Date.now();
+    const payload = { action: 'readSettings' };
+    const encoded = encodeURIComponent(JSON.stringify(payload));
+    const fullUrl = url + '?callback=' + cbName + '&payload=' + encoded + '&t=' + Date.now();
+    window[cbName] = (json) => {
+      delete window[cbName];
+      if (script.parentNode) document.head.removeChild(script);
+      if (json.status === 'ok') resolve(json.settings || {});
+      else reject(new Error(json.message || '讀取設定失敗'));
+    };
+    const script = document.createElement('script');
+    script.src = fullUrl;
+    script.onerror = () => { delete window[cbName]; reject(new Error('無法連接 GAS')); };
+    document.head.appendChild(script);
+    setTimeout(() => {
+      if (window[cbName]) { delete window[cbName]; reject(new Error('連線逾時')); }
+    }, 10000);
+  });
+}
+
+function writeSettingsViaGAS(url, settings) {
+  return new Promise((resolve, reject) => {
+    const cbName = 'gasWriteSettings_' + Date.now();
+    const payload = { action: 'writeSettings', settings };
+    const encoded = encodeURIComponent(JSON.stringify(payload));
+    const fullUrl = url + '?callback=' + cbName + '&payload=' + encoded;
+    window[cbName] = (json) => {
+      delete window[cbName];
+      if (script.parentNode) document.head.removeChild(script);
+      if (json.status === 'ok') resolve(json);
+      else reject(new Error(json.message || '寫入設定失敗'));
+    };
+    const script = document.createElement('script');
+    script.src = fullUrl;
+    script.onerror = () => { delete window[cbName]; reject(new Error('無法連接 GAS')); };
+    document.head.appendChild(script);
+    setTimeout(() => {
+      if (window[cbName]) { delete window[cbName]; reject(new Error('連線逾時')); }
+    }, 10000);
+  });
 }
 
 // ══════════════════════════════════════════════════════
@@ -446,6 +537,23 @@ function showScreen(id) {
 function goHome()     { showScreen('screen-home'); loadStaffList(); }
 function goSettings() { loadSettingsForm(); showScreen('screen-settings'); }
 function goCars()     { showScreen('screen-cars'); }
+
+async function manualSync() {
+  const url = gasUrl();
+  if (!url) {
+    const input = prompt('請輸入 GAS Web App 網址（只需輸入一次，之後會自動記住）：');
+    if (!input) return;
+    localStorage.setItem('gas_url', input.trim());
+  }
+  showToast('同步中⋯', '');
+  const ok = await syncSettingsFromCloud();
+  if (ok) {
+    showToast('同步成功！', 'success');
+    loadStaffList();
+  } else {
+    showToast('同步失敗，請確認 GAS 網址正確', 'error');
+  }
+}
 
 function goStaff(staff) {
   state.currentStaff = staff;
@@ -471,7 +579,7 @@ function goEdit(idx) {
   document.getElementById('delete-btn').style.display = 'block';
   fillEditForm(c);
   // 解析照片欄位（M~P）
-  state.photos = [c[12]||'', c[13]||'', c[14]||'', c[15]||''];
+  state.photos = [String(c[12]||''), String(c[13]||''), String(c[14]||''), String(c[15]||'')];
   renderPhotoSlots();
   showScreen('screen-edit');
 }
@@ -513,21 +621,52 @@ async function loadCars() {
   const list = document.getElementById('cars-list');
   list.innerHTML = `<div style="text-align:center;padding:40px;color:var(--silver)"><div class="photo-spinner" style="margin:0 auto 12px"></div>載入中⋯</div>`;
 
-  if (!state.currentStaff.csvUrl) {
-    list.innerHTML = `<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-text">此員工尚未設定試算表<br>請至系統設定填入 CSV 網址</div></div>`;
+  const gasUrl = localStorage.getItem('gas_url');
+  if (!gasUrl) {
+    list.innerHTML = `<div class="empty-state"><div class="empty-icon">⚙️</div><div class="empty-text">請先在系統設定填入 GAS Web App 網址</div></div>`;
     return;
   }
 
   try {
-    const res = await fetch(state.currentStaff.csvUrl + '&t=' + Date.now());
-    if (!res.ok) throw new Error('無法讀取試算表');
-    const text = await res.text();
-    const rows = parseCSV(text).slice(1).filter(r => r[0]);
-    state.cars = rows;
-    renderCarsList(rows);
+    const rows = await readCarsViaGAS();
+    state.cars = rows.slice(1).filter(r => r[0]); // 跳過標題列
+    renderCarsList(state.cars);
   } catch(e) {
     list.innerHTML = `<div class="empty-state"><div class="empty-icon">⚠️</div><div class="empty-text">無法載入：${e.message}</div></div>`;
   }
+}
+
+// 透過 GAS 直接讀取試算表（即時、無快取）
+function readCarsViaGAS() {
+  const gasUrl = localStorage.getItem('gas_url');
+  return new Promise((resolve, reject) => {
+    const cbName = 'gasRead_' + Date.now();
+    const payload = { action: 'readCars' };
+    const encoded = encodeURIComponent(JSON.stringify(payload));
+    const url = gasUrl + '?callback=' + cbName + '&payload=' + encoded + '&t=' + Date.now();
+
+    window[cbName] = (json) => {
+      delete window[cbName];
+      if (script.parentNode) document.head.removeChild(script);
+      if (json.status === 'ok') resolve(json.data || []);
+      else reject(new Error(json.message || '讀取失敗'));
+    };
+
+    const script = document.createElement('script');
+    script.src = url;
+    script.onerror = () => {
+      delete window[cbName];
+      reject(new Error('無法連接 GAS'));
+    };
+    document.head.appendChild(script);
+
+    setTimeout(() => {
+      if (window[cbName]) {
+        delete window[cbName];
+        reject(new Error('連線逾時'));
+      }
+    }, 10000);
+  });
 }
 
 function renderCarsList(rows) {
@@ -538,8 +677,8 @@ function renderCarsList(rows) {
   }
   const { user, repo } = cfg();
   list.innerHTML = rows.map((r,i) => {
-    const imgSrc = r[12] ? resolveImg(r[12], user, repo) : '';
-    const price = parseInt((r[4]||'0').replace(/[^0-9]/g,'')) || 0;
+    const imgSrc = r[12] ? resolveImg(String(r[12]), user, repo) : '';
+    const price = parseInt(String(r[4]||'0').replace(/[^0-9]/g,'')) || 0;
     const tag = r[10] ? `<span class="car-item-tag">${r[10]}</span>` : '';
     return `
       <div class="car-item" onclick="goEdit(${i})">
@@ -685,17 +824,16 @@ async function writeSheetViaGAS(cars) {
   if (!gasUrl) throw new Error('請在設定中填入 GAS Web App 網址');
 
   const headers = ['品牌','車名','年份','車型','售價','里程','燃料','顏色','排氣量','變速箱','標籤','描述','照片1','照片2','照片3','照片4'];
-  const payload = { action: 'writeCars', sheetUrl: state.currentStaff.csvUrl, data: [headers, ...cars] };
+  const payload = { action: 'writeCars', data: [headers, ...cars] };
 
-  // 用 JSONP 方式繞過 CORS 限制
   return new Promise((resolve, reject) => {
-    const cbName = 'gasCallback_' + Date.now();
+    const cbName = 'gasWrite_' + Date.now();
     const encoded = encodeURIComponent(JSON.stringify(payload));
     const url = gasUrl + '?callback=' + cbName + '&payload=' + encoded;
 
     window[cbName] = (json) => {
       delete window[cbName];
-      document.head.removeChild(script);
+      if (script.parentNode) document.head.removeChild(script);
       if (json.status === 'ok') resolve(json);
       else reject(new Error(json.message || 'GAS 寫入失敗'));
     };
@@ -704,29 +842,15 @@ async function writeSheetViaGAS(cars) {
     script.src = url;
     script.onerror = () => {
       delete window[cbName];
-      // JSONP 失敗時改用 fetch no-cors（只能確認送出，無法確認結果）
-      fetch(gasUrl, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'text/plain' },
-        body: JSON.stringify(payload),
-      }).then(() => resolve({ status: 'ok' }))
-        .catch(() => reject(new Error('無法連接 GAS，請確認部署設定')));
+      reject(new Error('無法連接 GAS，請確認部署設定'));
     };
     document.head.appendChild(script);
     setTimeout(() => {
       if (window[cbName]) {
         delete window[cbName];
-        // timeout 時改用 no-cors
-        fetch(gasUrl, {
-          method: 'POST',
-          mode: 'no-cors',
-          headers: { 'Content-Type': 'text/plain' },
-          body: JSON.stringify(payload),
-        }).then(() => resolve({ status: 'ok' }))
-          .catch(() => reject(new Error('連線逾時')));
+        reject(new Error('連線逾時，請確認 GAS 是否正常運作'));
       }
-    }, 8000);
+    }, 10000);
   });
 }
 
@@ -767,15 +891,22 @@ function loadSettingsForm() {
   if (gasInput) gasInput.value = localStorage.getItem('gas_url') || '';
 }
 
-function saveSettings() {
+async function saveSettings() {
   localStorage.setItem('gh_token',    document.getElementById('s-token').value.trim());
   localStorage.setItem('gh_user',     document.getElementById('s-user').value.trim());
   localStorage.setItem('gh_repo',     document.getElementById('s-repo').value.trim());
   localStorage.setItem('staff_list',  document.getElementById('s-staff').value.trim());
   const gasEl = document.getElementById('s-gas');
   if (gasEl) localStorage.setItem('gas_url', gasEl.value.trim());
-  showToast('設定已儲存', 'success');
-  setTimeout(() => goHome(), 600);
+
+  showToast('儲存中⋯同步到雲端', '');
+  try {
+    await syncSettingsToCloud();
+    showToast('設定已儲存並同步！', 'success');
+  } catch(e) {
+    showToast('已存本機，雲端同步失敗：' + e.message, 'error');
+  }
+  setTimeout(() => goHome(), 800);
 }
 
 // ══════════════════════════════════════════════════════
@@ -851,7 +982,7 @@ function showToast(msg, type='') {
 // ══════════════════════════════════════════════════════
 //  設定頁補充：GAS URL 欄位
 // ══════════════════════════════════════════════════════
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   // 在設定頁加入 GAS URL 欄位
   const staffGroup = document.querySelector('#screen-settings .settings-group:first-child .settings-card');
   const gasRow = document.createElement('div');
@@ -860,6 +991,12 @@ document.addEventListener('DOMContentLoaded', () => {
     <input class="form-input" id="s-gas" placeholder="https://script.google.com/macros/s/..." autocomplete="off">`;
   staffGroup.appendChild(gasRow);
 
+  // 如果本機已有 gas_url，先嘗試從雲端同步最新設定
+  const existingGasUrl = localStorage.getItem('gas_url');
+  if (existingGasUrl) {
+    document.getElementById('staff-list').innerHTML = `<div style="text-align:center;padding:40px;color:var(--silver);font-size:0.85rem;">同步雲端設定中⋯</div>`;
+    await syncSettingsFromCloud();
+  }
   loadStaffList();
 });
 </script>
