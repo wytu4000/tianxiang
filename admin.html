@@ -435,13 +435,12 @@ let state = {
 //  GAS_URL 寫死在程式碼裡（這是唯一不需要每次輸入的東西）
 //  其他設定（Token、員工列表等）都存在 GAS 試算表，自動同步
 // ══════════════════════════════════════════════════════
-const BOOTSTRAP_GAS_URL = ''; // ← 第一次設定完後，把 GAS 網址貼這裡，之後就不用每次輸入了
+const BOOTSTRAP_GAS_URL = 'https://script.google.com/macros/s/AKfycbwdX6Nh_CfA2Kxclr-hQH88afm9m5SD0L-FoyA3NjaCsUeY0OKkK3UpZXpNm8N5_0Gafg/exec'; // 已寫死，員工打開直接自動同步，無需設定
 
 function cfg() {
   return {
-    token: localStorage.getItem('gh_token') || '',
-    user:  localStorage.getItem('gh_user')  || 'wytu4000',
-    repo:  localStorage.getItem('gh_repo')  || 'tianxiang',
+    user:  'wytu4000',
+    repo:  'tianxiang',
     staff: localStorage.getItem('staff_list') || '',
   };
 }
@@ -991,10 +990,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     <input class="form-input" id="s-gas" placeholder="https://script.google.com/macros/s/..." autocomplete="off">`;
   staffGroup.appendChild(gasRow);
 
-  // 如果本機已有 gas_url，先嘗試從雲端同步最新設定
-  const existingGasUrl = localStorage.getItem('gas_url');
-  if (existingGasUrl) {
-    document.getElementById('staff-list').innerHTML = `<div style="text-align:center;padding:40px;color:var(--silver);font-size:0.85rem;">同步雲端設定中⋯</div>`;
+  // 自動同步：只要有 BOOTSTRAP_GAS_URL，每次打開都自動拉最新設定
+  // 員工完全不需要手動設定任何東西
+  if (BOOTSTRAP_GAS_URL) {
+    document.getElementById('staff-list').innerHTML = `<div style="text-align:center;padding:40px;color:var(--silver);font-size:0.85rem;">載入中⋯</div>`;
     await syncSettingsFromCloud();
   }
   loadStaffList();
