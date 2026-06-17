@@ -372,23 +372,6 @@ html, body { height:100%; background:var(--bg); color:var(--white); font-family:
   </div>
   <div class="edit-body">
     <div class="settings-group">
-      <div class="settings-group-label">GitHub 設定</div>
-      <div class="settings-card">
-        <div class="settings-row">
-          <div class="settings-row-label">GitHub Token</div>
-          <input class="form-input" id="s-token" type="password" placeholder="ghp_xxxxxxxxxxxx" autocomplete="off">
-        </div>
-        <div class="settings-row">
-          <div class="settings-row-label">GitHub 帳號</div>
-          <input class="form-input" id="s-user" placeholder="wytu4000" autocomplete="off">
-        </div>
-        <div class="settings-row">
-          <div class="settings-row-label">Repository 名稱</div>
-          <input class="form-input" id="s-repo" placeholder="tianxiang" autocomplete="off">
-        </div>
-      </div>
-    </div>
-    <div class="settings-group">
       <div class="settings-group-label">員工列表（每行一個，格式：名稱,試算表CSV網址）</div>
       <div class="settings-card">
         <div class="settings-row">
@@ -398,8 +381,8 @@ html, body { height:100%; background:var(--bg); color:var(--white); font-family:
       </div>
     </div>
     <p style="font-size:0.75rem;color:var(--silver);line-height:1.7;padding:0 4px;">
-      ＊設定儲存在瀏覽器本機，不會上傳到任何伺服器。<br>
-      ＊更換裝置後需重新設定。
+      ＊GitHub 上傳金鑰已安全存放在伺服器端，前端不會接觸到。<br>
+      ＊員工列表會自動同步到雲端，不需要在每台裝置重複設定。
     </p>
   </div>
 </div>
@@ -455,9 +438,6 @@ async function syncSettingsFromCloud() {
   if (!url) return false;
   try {
     const settings = await readSettingsViaGAS(url);
-    if (settings.gh_token) localStorage.setItem('gh_token', settings.gh_token);
-    if (settings.gh_user)  localStorage.setItem('gh_user', settings.gh_user);
-    if (settings.gh_repo)  localStorage.setItem('gh_repo', settings.gh_repo);
     if (settings.staff_list) localStorage.setItem('staff_list', settings.staff_list);
     localStorage.setItem('gas_url', url);
     return true;
@@ -472,9 +452,6 @@ async function syncSettingsToCloud() {
   const url = gasUrl();
   if (!url) throw new Error('請先填入 GAS Web App 網址');
   const settings = {
-    gh_token: localStorage.getItem('gh_token') || '',
-    gh_user:  localStorage.getItem('gh_user')  || '',
-    gh_repo:  localStorage.getItem('gh_repo')  || '',
     staff_list: localStorage.getItem('staff_list') || '',
   };
   await writeSettingsViaGAS(url, settings);
@@ -716,9 +693,7 @@ async function handlePhoto(input) {
   };
   reader.readAsDataURL(file);
 
-  // 上傳到 GitHub
-  const { token, user, repo } = cfg();
-  if (!token) { showToast('請先在設定中填入 GitHub Token', 'error'); return; }
+  const { user, repo } = cfg();
 
   state.uploading[slot] = true;
   try {
@@ -726,7 +701,7 @@ async function handlePhoto(input) {
     const ts = Date.now();
     const filename = `car_${ts}_${slot}.${ext}`;
     const b64 = await fileToBase64(file);
-    await githubUploadFile(filename, b64, token, user, repo);
+    await uploadPhotoViaGAS(filename, b64);
     state.photos[slot] = filename;
     setSlotPreview(slot, resolveImg(filename, user, repo), false);
     showToast('照片上傳成功！', 'success');
@@ -735,6 +710,33 @@ async function handlePhoto(input) {
     showToast('上傳失敗：' + e.message, 'error');
   }
   state.uploading[slot] = false;
+}
+
+// 透過 GAS 中轉上傳照片到 GitHub（Token 留在伺服器端，前端不會接觸到）
+function uploadPhotoViaGAS(filename, base64Data) {
+  const url = gasUrl();
+  if (!url) throw new Error('系統尚未設定 GAS 網址');
+  const payload = { action: 'uploadPhoto', filename, base64: base64Data };
+
+  return new Promise((resolve, reject) => {
+    const cbName = 'gasUpload_' + Date.now();
+    const encoded = encodeURIComponent(JSON.stringify(payload));
+    const fullUrl = url + '?callback=' + cbName + '&payload=' + encoded;
+
+    window[cbName] = (json) => {
+      delete window[cbName];
+      if (script.parentNode) document.head.removeChild(script);
+      if (json.status === 'ok') resolve(json.filename);
+      else reject(new Error(json.message || '上傳失敗'));
+    };
+    const script = document.createElement('script');
+    script.src = fullUrl;
+    script.onerror = () => { delete window[cbName]; reject(new Error('無法連接 GAS')); };
+    document.head.appendChild(script);
+    setTimeout(() => {
+      if (window[cbName]) { delete window[cbName]; reject(new Error('上傳逾時，照片可能太大')); }
+    }, 20000);
+  });
 }
 
 function setSlotPreview(slot, src, loading) {
@@ -856,45 +858,18 @@ async function writeSheetViaGAS(cars) {
 // ══════════════════════════════════════════════════════
 //  GitHub 上傳檔案
 // ══════════════════════════════════════════════════════
-async function githubUploadFile(filename, base64Data, token, user, repo) {
-  const apiUrl = `https://api.github.com/repos/${user}/${repo}/contents/${filename}`;
-  // 取得現有 SHA
-  let sha = null;
-  try {
-    const r = await fetch(apiUrl, { headers: { Authorization: `token ${token}` } });
-    if (r.ok) sha = (await r.json()).sha;
-  } catch(e) {}
-
-  const payload = { message: `上傳照片 ${filename}`, content: base64Data.split(',')[1] || base64Data };
-  if (sha) payload.sha = sha;
-
-  const res = await fetch(apiUrl, {
-    method: 'PUT',
-    headers: { Authorization: `token ${token}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
-  });
-  if (!res.ok) throw new Error(`GitHub ${res.status}`);
-}
-
 // ══════════════════════════════════════════════════════
 //  設定頁
 // ══════════════════════════════════════════════════════
 function loadSettingsForm() {
   const c = cfg();
-  document.getElementById('s-token').value = c.token;
-  document.getElementById('s-user').value  = c.user;
-  document.getElementById('s-repo').value  = c.repo;
   document.getElementById('s-staff').value = c.staff;
-  // GAS URL
   const gasInput = document.getElementById('s-gas');
   if (gasInput) gasInput.value = localStorage.getItem('gas_url') || '';
 }
 
 async function saveSettings() {
-  localStorage.setItem('gh_token',    document.getElementById('s-token').value.trim());
-  localStorage.setItem('gh_user',     document.getElementById('s-user').value.trim());
-  localStorage.setItem('gh_repo',     document.getElementById('s-repo').value.trim());
-  localStorage.setItem('staff_list',  document.getElementById('s-staff').value.trim());
+  localStorage.setItem('staff_list', document.getElementById('s-staff').value.trim());
   const gasEl = document.getElementById('s-gas');
   if (gasEl) localStorage.setItem('gas_url', gasEl.value.trim());
 
